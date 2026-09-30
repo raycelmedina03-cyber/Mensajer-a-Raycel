@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1E90FF">
+<title>Mensajería Raycel | Rápido • Seguro • Confiable</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+ integrity="sha256-p4NxAoJBhIINfQ3N0h5a4mZ0J8x0nJ9q7qf3r3Q7d4="
+ crossorigin=""/>
+
+<style>
+:root{
+  --blue:#1E90FF;--blue2:#0066CC;--green:#2ECC71;--green2:#27AE60;
+  --red:#E74C3C;--gold:#FFD700;--orange:#FFA500;--wa:#25D366;--wa2:#128C7E;
+  --purple:#667eea;--purple2:#764ba2;--text:#172033;--muted:#667085;
+  --white:#fff;--shadow:0 12px 35px rgba(17,24,39,.12);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+ margin:0;min-height:100vh;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+ background:linear-gradient(135deg,var(--purple),var(--purple2));color:var(--text);padding:18px;
+}
+.app{max-width:1180px;margin:auto;background:#fff;border-radius:22px;box-shadow:0 25px 70px rgba(0,0,0,.22);overflow:hidden}
+header{
+ padding:22px 26px;color:#fff;background:linear-gradient(135deg,var(--blue),var(--blue2));
+ display:flex;align-items:center;gap:16px
+}
+.logo{width:76px;height:76px;flex:0 0 76px}
+.brand h1{margin:0;font-size:clamp(1.45rem,4vw,2.15rem)}
+.brand p{margin:5px 0 0;font-weight:600;opacity:.95}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);background:#f7f9fc;border-bottom:1px solid #e8edf4}
+.tab{border:0;background:transparent;padding:16px 8px;font-weight:800;color:#596579;cursor:pointer;transition:.2s;font-size:.95rem}
+.tab:hover{transform:translateY(-2px);color:var(--blue)}
+.tab.active{color:var(--blue);background:#fff;box-shadow:inset 0 -4px var(--blue)}
+main{padding:24px}
+.panel{display:none;animation:fadeIn .35s ease}
+.panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.card{background:#fff;border:1px solid #e9edf3;border-radius:18px;padding:20px;box-shadow:var(--shadow);margin-bottom:18px}
+h2{margin:0 0 7px}h3{margin:0 0 12px}
+.subtitle{color:var(--muted);margin:0 0 18px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.field{display:flex;flex-direction:column;gap:7px}
+.field.full{grid-column:1/-1}
+label{font-weight:800;font-size:.92rem}
+input,textarea,select{
+ width:100%;padding:13px 14px;border:1px solid #d8dee8;border-radius:12px;outline:0;
+ font:inherit;background:#fff;transition:.2s
+}
+input:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(30,144,255,.12)}
+.btn{
+ border:0;border-radius:12px;padding:13px 17px;font-weight:800;color:#fff;cursor:pointer;
+ transition:.2s;display:inline-flex;align-items:center;justify-content:center;gap:8px
+}
+.btn:hover{transform:translateY(-2px);filter:brightness(1.03)}
+.btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
+.btn-blue{background:linear-gradient(135deg,var(--blue),var(--blue2))}
+.btn-green{background:linear-gradient(135deg,var(--green),var(--green2))}
+.btn-wa{background:linear-gradient(135deg,var(--wa),var(--wa2))}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--orange));color:#3d2c00}
+.btn-red{background:var(--red)}
+.btn-dark{background:#344054}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.status{display:none;padding:12px 14px;border-radius:12px;margin-top:15px;font-weight:700}
+.status.show{display:block}.status.info{background:#eaf4ff;color:#0957a6}.status.error{background:#fff0ef;color:#a93226}
+.status.success{background:#ebfff3;color:#18733e}
+.result{display:none;margin-top:20px}.result.show{display:block}
+.price-box{text-align:center;border-radius:18px;padding:20px;background:linear-gradient(135deg,#f7fbff,#eef7ff);border:1px solid #d7ebff}
+.old-price{text-decoration:line-through;color:#8b95a7;font-size:1.1rem}.price{font-size:2rem;font-weight:900;color:var(--blue)}
+.saving{color:var(--green2);font-weight:900}.fixed-badge{display:inline-block;background:linear-gradient(135deg,var(--gold),var(--orange));padding:6px 10px;border-radius:999px;font-weight:900;animation:pulse 1.7s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,215,0,.5)}50%{box-shadow:0 0 0 8px rgba(255,215,0,0)}}
+#mapSimple,#mapReserve{height:420px;border-radius:16px;overflow:hidden;margin-top:18px;display:none}
+.stop{border:1px solid #e2e8f0;border-radius:15px;padding:14px;margin-top:12px;background:#fafcff}
+.stop-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.stop-title{font-weight:900;color:var(--blue)}
+.qr-wrap{text-align:center}
+#qrcode{display:inline-block;padding:12px;background:#fff;border-radius:15px;box-shadow:var(--shadow);min-height:244px;min-width:244px}
+.tip-list{padding-left:20px;line-height:1.8;color:#475467}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.stat{padding:18px;border-radius:17px;color:#fff;box-shadow:var(--shadow)}
+.stat:nth-child(1){background:linear-gradient(135deg,var(--blue),var(--blue2))}
+.stat:nth-child(2){background:linear-gradient(135deg,var(--gold),var(--orange));color:#3d2c00}
+.stat:nth-child(3){background:linear-gradient(135deg,var(--green),var(--green2))}
+.stat:nth-child(4){background:linear-gradient(135deg,var(--purple),var(--purple2))}
+.stat .num{font-size:1.75rem;font-weight:900}.stat small{font-weight:800}
+.client{border:1px solid #e5e9f0;border-radius:16px;padding:16px;margin-top:13px}
+.client-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.client-name{font-weight:900;font-size:1.1rem}
+.client-meta{color:var(--muted);font-size:.9rem;margin-top:5px}
+.history{margin:12px 0 0;padding:0;list-style:none}
+.history li{background:#f8fafc;border-radius:11px;padding:10px;margin-top:7px;font-size:.87rem}
+.empty{text-align:center;color:var(--muted);padding:30px}
+footer{text-align:center;padding:18px;color:#667085;font-size:.85rem;border-top:1px solid #edf0f4}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid #ffffff66;border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.notice{background:#fff8e1;border-left:4px solid var(--gold);padding:12px 14px;border-radius:10px;color:#695000}
+.route-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:16px}
+.metric{background:#f8fafc;border-radius:12px;padding:13px;text-align:center}.metric strong{display:block;font-size:1.15rem}
+.marker-label{background:#fff;border:2px solid var(--red);border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--red);box-shadow:0 2px 8px #0003}
+.start-label{background:#fff;border:2px solid var(--green2);border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 8px #0003}
+@media(max-width:800px){
+ body{padding:7px}.app{border-radius:15px}.tabs{grid-template-columns:repeat(2,1fr)}
+ main{padding:15px}.grid,.stats,.route-summary{grid-template-columns:1fr}
+ header{padding:18px}.logo{width:62px;height:62px;flex-basis:62px}
+ #mapSimple,#mapReserve{height:330px}
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+<header>
+  <svg class="logo" viewBox="0 0 100 100" aria-label="Logo Mensajería Raycel">
+    <circle cx="50" cy="50" r="46" fill="white" stroke="#FFD700" stroke-width="4"/>
+    <g fill="none" stroke="#1E90FF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="28" cy="68" r="14"/><circle cx="70" cy="68" r="14"/>
+      <path d="M28 68 L42 45 L55 68 L28 68 M42 45 L62 45 L70 68 M42 45 L37 37 M62 45 L68 39"/>
+      <path d="M34 54 L55 54"/>
+    </g>
+    <rect x="49" y="36" width="20" height="15" rx="2" fill="#2ECC71" stroke="#219653" stroke-width="2"/>
+    <path d="M76 17 L68 31 L75 31 L69 44 L84 27 L77 27 Z" fill="#FFD700" stroke="#FFA500" stroke-width="1.5"/>
+    <circle cx="37" cy="37" r="3" fill="#1E90FF"/>
+  </svg>
+  <div class="brand">
+    <h1>Mensajería Raycel</h1>
+    <p>🚴 Rápido • Seguro • Confiable</p>
+  </div>
+</header>
+
+<nav class="tabs" aria-label="Navegación">
+  <button class="tab active" data-tab="calculate">🧮 Calcular</button>
+  <button class="tab" data-tab="reserve">📅 Reservar</button>
+  <button class="tab" data-tab="qr">📱 QR</button>
+  <button class="tab" data-tab="admin">🔐 Admin</button>
+</nav>
+
+<main>
+<section id="calculate" class="panel active">
+  <div class="card">
+    <h2>🧮 Calcular precio</h2>
+    <p class="subtitle">Calcula la distancia real por calles y recibe el precio de tu mensajería.</p>
+    <div class="grid">
+      <div class="field"><label for="cName">👤 Nombre del cliente</label><input id="cName" placeholder="Ej. Juan Pérez"></div>
+      <div class="field"><label for="cPhone">📱 WhatsApp del cliente</label><input id="cPhone" type="tel" placeholder="+535XXXXXXXX"></div>
+      <div class="field"><label for="cOrigin">📍 Dirección de origen</label><input id="cOrigin" placeholder="Ej. Vedado, La Habana, Cuba"></div>
+      <div class="field"><label for="cDest">🎯 Dirección de destino</label><input id="cDest" placeholder="Ej. Centro Habana, Cuba"></div>
+    </div>
+    <div class="actions"><button id="calcBtn" class="btn btn-blue">📏 Calcular Precio</button></div>
+    <div id="calcStatus" class="status"></div>
+  </div>
+  <div id="calcResult" class="result">
+    <div class="card">
+      <h3>📦 Resultado de la mensajería</h3>
+      <div id="calcCustomer"></div>
+      <div class="route-summary">
+        <div class="metric">Distancia<strong id="calcDistance">—</strong></div>
+        <div class="metric">Tiempo estimado<strong id="calcTime">—</strong></div>
+        <div class="metric">Tarifa<strong>200 CUP/km</strong></div>
+        <div class="metric">Estado<strong id="calcClientState">—</strong></div>
+      </div>
+      <div class="price-box" style="margin-top:16px">
+        <div id="calcOld"></div><div id="calcPrice" class="price">—</div><div id="calcSaving" class="saving"></div>
+      </div>
+      <div class="actions"><button id="calcWA" class="btn btn-wa">💬 Solicitar por WhatsApp</button></div>
+      <div id="mapSimple"></div>
+    </div>
+  </div>
+</section>
+
+<section id="reserve" class="panel">
+  <div class="card">
+    <h2>📅 Reservar mensajería</h2>
+    <p class="subtitle">Puedes enviar hasta 5 paradas. Cada parada se calcula desde el origen.</p>
+    <div class="grid">
+      <div class="field"><label for="rName">👤 Nombre</label><input id="rName" placeholder="Nombre del cliente"></div>
+      <div class="field"><label for="rPhone">📱 WhatsApp</label><input id="rPhone" type="tel" placeholder="+535XXXXXXXX"></div>
+      <div class="field"><label for="rDate">📅 Fecha y hora de recogida</label><input id="rDate" type="datetime-local"></div>
+      <div class="field full"><label for="rOrigin">📍 Origen</label><input id="rOrigin" placeholder="Dirección de partida"></div>
+    </div>
+    <div style="margin-top:18px"><h3>🎯 Paradas</h3><div id="stops"></div></div>
+    <div class="actions">
+      <button id="addStop" class="btn btn-dark">➕ Agregar Parada</button>
+      <button id="reserveBtn" class="btn btn-green">🧭 Calcular Reserva</button>
+    </div>
+    <div id="reserveStatus" class="status"></div>
+  </div>
+  <div id="reserveResult" class="result">
+    <div class="card">
+      <h3>📋 Resumen de reserva</h3>
+      <div id="reserveSummary"></div>
+      <div class="price-box"><div id="reserveOld"></div><div id="reservePrice" class="price">—</div><div id="reserveSaving" class="saving"></div></div>
+      <div class="actions"><button id="reserveWA" class="btn btn-wa">💬 Confirmar Reserva por WhatsApp</button></div>
+      <div id="mapReserve"></div>
+    </div>
+  </div>
+</section>
+
+<section id="qr" class="panel">
+  <div class="card">
+    <h2>📱 Código QR</h2>
+    <p class="subtitle">Genera un QR para compartir rápidamente tu página.</p>
+    <div class="grid">
+      <div class="field full"><label for="qrUrl">🔗 URL de tu página</label><input id="qrUrl" placeholder="https://mensajeria-raycel.netlify.app"></div>
+    </div>
+    <div class="actions">
+      <button id="genQR" class="btn btn-blue">🔄 Generar Código QR</button>
+      <button id="downloadQR" class="btn btn-green">💾 Descargar</button>
+      <button id="shareQR" class="btn btn-wa">📤 Compartir</button>
+    </div>
+    <div class="qr-wrap" style="margin-top:22px"><div id="qrcode"></div></div>
+  </div>
+  <div class="card">
+    <h3>💡 Ideas para usar tu QR</h3>
+    <ul class="tip-list">
+      <li>Imprímelo y colócalo en la bicicleta.</li>
+      <li>Inclúyelo en tarjetas de presentación.</li>
+      <li>Publícalo en estados de WhatsApp.</li>
+      <li>Colócalo en empaques o recibos de tus clientes.</li>
+      <li>Úsalo en publicaciones de Facebook e Instagram.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="admin" class="panel">
+  <div id="adminLogin" class="card">
+    <h2>🔐 Panel de administrador</h2>
+    <p class="subtitle">Acceso privado para consultar clientes, mensajerías e ingresos.</p>
+    <div class="field"><label for="adminPass">Contraseña</label><input id="adminPass" type="password" placeholder="Contraseña"></div>
+    <div class="actions"><button id="loginBtn" class="btn btn-blue">🔓 Entrar</button></div>
+    <div id="loginStatus" class="status"></div>
+  </div>
+  <div id="adminPanel" style="display:none">
+    <div class="stats">
+      <div class="stat"><small>Clientes totales</small><div class="num" id="sClients">0</div></div>
+      <div class="stat"><small>Clientes fijos</small><div class="num" id="sFixed">0</div></div>
+      <div class="stat"><small>Mensajerías totales</small><div class="num" id="sOrders">0</div></div>
+      <div class="stat"><small>Ingresos totales</small><div class="num" id="sRevenue">0 CUP</div></div>
+    </div>
+    <div class="card" style="margin-top:18px">
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap">
+        <h3>👥 Clientes</h3><button id="logoutBtn" class="btn btn-dark">🔒 Cerrar sesión</button>
+      </div>
+      <div id="clientsList"></div>
+    </div>
+  </div>
+</section>
+</main>
+<footer>© <span id="year"></span> Mensajería Raycel • Rápido • Seguro • Confiable</footer>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+ integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+ crossorigin=""></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
+<script>
+/* ==========================================================
+   CONFIGURACIÓN: cambia estos valores si lo necesitas
+   ========================================================== */
+const CONFIG = {
+  businessName: "Mensajería Raycel",
+  ownerWhatsApp: "5356596489",
+  pricePerKm: 200,
+  fixedOrders: 3,
+  fixedDiscount: 0.10,
+  defaultMap: [23.1136, -82.3666],
+  adminPasswordHash: "0547acd2a8951c6e4e458c4008c5c07f7c695ab348fd93fb8da346cfb8faabbe"
+};
+
+async function sha256(text){
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+
+const $ = id => document.getElementById(id);
+const LS_CLIENTS = "raycel_clients_v1";
+const LS_QR = "raycel_qr_url_v1";
+
+function getClients(){ try{return JSON.parse(localStorage.getItem(LS_CLIENTS)||"{}")}catch(e){return {}} }
+function saveClients(x){localStorage.setItem(LS_CLIENTS,JSON.stringify(x))}
+function normalizePhone(p){return String(p||"").replace(/[^\d]/g,"")}
+function clientKey(phone,name){
+  const p=normalizePhone(phone);
+  return p || String(name||"").trim().toLowerCase().replace(/\s+/g,"_");
+}
+function esc(s){
+  return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+}
+function money(n){return `${Math.round(n).toLocaleString("es-CU")} CUP`}
+function setStatus(el,msg,type="info"){
+  el.className="status show "+type;el.innerHTML=msg;
+}
+function clearStatus(el){el.className="status";el.textContent=""}
+function nowLocalInput(){
+  const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());
+  return d.toISOString().slice(0,16);
+}
+$("year").textContent=new Date().getFullYear();
+$("rDate").min=nowLocalInput();$("rDate").value=nowLocalInput();
+
+document.querySelectorAll(".tab").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+    document.querySelectorAll(".panel").forEach(x=>x.classList.remove("active"));
+    btn.classList.add("active");$(btn.dataset.tab).classList.add("active");
+    setTimeout(()=>window.dispatchEvent(new Event("resize")),100);
+  });
+});
+
+async function geocode(address){
+  const url=`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=cu&q=${encodeURIComponent(address)}`;
+  const res=await fetch(url,{headers:{"Accept":"application/json","Accept-Language":"es"}});
+  if(!res.ok) throw new Error("No se pudo consultar el geocodificador.");
+  const data=await res.json();
+  if(!data.length) throw new Error(`No encontramos: ${address}`);
+  return {lat:+data[0].lat,lon:+data[0].lon,label:data[0].display_name};
+}
+async function route(a,b){
+  const url=`https://router.project-osrm.org/route/v1/driving/${a.lon},${a.lat};${b.lon},${b.lat}?overview=full&geometries=geojson`;
+  const res=await fetch(url);
+  if(!res.ok) throw new Error("No se pudo calcular la ruta.");
+  const data=await res.json();
+  if(data.code!=="Ok"||!data.routes?.length) throw new Error("No existe una ruta disponible entre los puntos.");
+  return data.routes[0];
+}
+function formatTime(sec){
+  const min=Math.max(1,Math.round(sec/60));
+  if(min<60)return `${min} min`;
+  const h=Math.floor(min/60),m=min%60;
+  return `${h} h ${m} min`;
+}
+function getCustomer(phone,name){
+  const clients=getClients(),key=clientKey(phone,name);
+  if(!clients[key]) clients[key]={name:name.trim(),phone:normalizePhone(phone),orders:[]};
+  else {clients[key].name=name.trim()||clients[key].name;clients[key].phone=normalizePhone(phone)||clients[key].phone}
+  return {clients,key,client:clients[key]};
+}
+function addOrder(phone,name,order){
+  const {clients,key,client}=getCustomer(phone,name);
+  client.orders.push(order);saveClients(clients);
+  return client;
+}
+function pricing(orderCount,distance){
+  const original=distance*CONFIG.pricePerKm;
+  const fixed=orderCount>=CONFIG.fixedOrders;
+  const final=fixed?original*(1-CONFIG.fixedDiscount):original;
+  return {original,final,fixed,saving:original-final};
+}
+function clientState(n){
+  if(n>=CONFIG.fixedOrders)return '<span class="fixed-badge">⭐ FIJO</span>';
+  const left=CONFIG.fixedOrders-n;
+  return left>0?`Te falta ${left} mensajería${left===1?"":"s"} para ser cliente fijo`:"";
+}
+
+function makeIcon(type,n){
+  return L.divIcon({className:"",html:type==="start"?'<div class="start-label">🏁</div>':`<div class="marker-label">${n}</div>`,iconSize:type==="start"?[34,34]:[30,30],iconAnchor:type==="start"?[17,17]:[15,15]});
+}
+function newMap(id){
+  const map=L.map(id).setView(CONFIG.defaultMap,13);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(map);
+  return map;
+}
+let simpleMap=null,reserveMap=null,calcRouteData=null,reserveRouteData=null;
+
+$("calcBtn").addEventListener("click",async()=>{
+  const name=$("cName").value.trim(),phone=$("cPhone").value.trim(),originText=$("cOrigin").value.trim(),destText=$("cDest").value.trim();
+  if(!name||!phone||!originText||!destText){setStatus($("calcStatus"),"Completa todos los campos.","error");return}
+  const btn=$("calcBtn");btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Calculando...';clearStatus($("calcStatus"));
+  try{
+    setStatus($("calcStatus"),"📍 Buscando origen y destino...","info");
+    const [origin,dest]=await Promise.all([geocode(originText),geocode(destText)]);
+    setStatus($("calcStatus"),"🛣️ Calculando ruta real por calles...","info");
+    const rt=await route(origin,dest);
+    const km=rt.distance/1000;
+    const {client}=getCustomer(phone,name);
+    const p=pricing(client.orders.length,km);
+    $("calcDistance").textContent=km.toFixed(2)+" km";
+    $("calcTime").textContent=formatTime(rt.duration);
+    $("calcClientState").innerHTML=clientState(client.orders.length);
+    $("calcCustomer").innerHTML=`<div class="notice">Cliente: <strong>${esc(name)}</strong> · ${client.orders.length} mensajería${client.orders.length===1?"":"s"} registrada${client.orders.length===1?"":"s"}.</div>`;
+    $("calcOld").innerHTML=p.fixed?`Precio original: <span class="old-price">${money(p.original)}</span>`:"";
+    $("calcPrice").textContent=money(p.final);
+    $("calcSaving").textContent=p.fixed?`⭐ Ahorras ${money(p.saving)} con tu 10% de cliente fijo.`:"";
+    $("calcResult").classList.add("show");
+    if(simpleMap){simpleMap.remove()}
+    simpleMap=newMap("mapSimple");$("mapSimple").style.display="block";
+    const coords=rt.geometry.coordinates.map(x=>[x[1],x[0]]);
+    L.marker([origin.lat,origin.lon],{icon:makeIcon("start")}).addTo(simpleMap).bindPopup("Origen").openPopup();
+    L.marker([dest.lat,dest.lon],{icon:makeIcon("dest",1)}).addTo(simpleMap).bindPopup("Destino");
+    L.polyline(coords,{color:"#1E90FF",weight:5,opacity:.8}).addTo(simpleMap);
+    simpleMap.fitBounds(L.latLngBounds([[origin.lat,origin.lon],[dest.lat,dest.lon]]),{padding:[30,30]});
+    calcRouteData={name,phone,originText,destText,km,duration:rt.duration,price:p.final,original:p.original,fixed:p.fixed};
+    $("calcWA").onclick=()=>{
+      const msg=`Hola, soy ${name}. Quiero solicitar una mensajería con Mensajería Raycel.\n\n📍 Origen: ${originText}\n🎯 Destino: ${destText}\n📏 Distancia: ${km.toFixed(2)} km\n💰 Precio: ${money(p.final)}${p.fixed?`\n⭐ Descuento cliente fijo: 10%\n💵 Ahorro: ${money(p.saving)}`:""}\n⏱️ Tiempo estimado: ${formatTime(rt.duration)}\n\n¿Podemos confirmar el servicio?`;
+      window.open(`https://wa.me/${CONFIG.ownerWhatsApp}?text=${encodeURIComponent(msg)}`,"_blank");
+      addOrder(phone,name,{date:new Date().toISOString(),origin:originText,destination:destText,distance:km,price:p.final,original:p.original,discount:p.fixed,duration:rt.duration});
+      renderAdmin();
+    };
+    setStatus($("calcStatus"),"✅ Ruta calculada correctamente.","success");
+  }catch(e){setStatus($("calcStatus"),"❌ "+esc(e.message),"error")}
+  finally{btn.disabled=false;btn.textContent="📏 Calcular Precio"}
+});
+
+let stopCount=0;
+function addStop(){
+  if(stopCount>=5)return;
+  stopCount++;
+  const div=document.createElement("div");div.className="stop";div.dataset.stop=stopCount;
+  div.innerHTML=`<div class="stop-head"><span class="stop-title">Parada ${stopCount}</span><button type="button" class="btn btn-red remove-stop" style="padding:7px 10px">🗑️</button></div>
+  <div class="grid"><div class="field"><label>👤 Nombre del cliente</label><input class="stop-name" placeholder="Cliente de la parada"></div>
+  <div class="field"><label>📍 Dirección</label><input class="stop-address" placeholder="Dirección de entrega"></div></div>`;
+  div.querySelector(".remove-stop").onclick=()=>{div.remove();renumberStops()};
+  $("stops").appendChild(div);renumberStops();
+}
+function renumberStops(){
+  [...document.querySelectorAll(".stop")].forEach((el,i)=>{el.dataset.stop=i+1;el.querySelector(".stop-title").textContent=`Parada ${i+1}`});
+  $("addStop").disabled=document.querySelectorAll(".stop").length>=5;
+}
+$("addStop").onclick=addStop;addStop();
+
+$("reserveBtn").addEventListener("click",async()=>{
+  const name=$("rName").value.trim(),phone=$("rPhone").value.trim(),date=$("rDate").value,originText=$("rOrigin").value.trim();
+  const stops=[...document.querySelectorAll(".stop")].map(x=>({name:x.querySelector(".stop-name").value.trim(),address:x.querySelector(".stop-address").value.trim()}));
+  if(!name||!phone||!date||!originText||!stops.length||stops.some(s=>!s.name||!s.address)){setStatus($("reserveStatus"),"Completa todos los datos y todas las paradas.","error");return}
+  if(new Date(date)<new Date()){setStatus($("reserveStatus"),"La fecha de recogida no puede ser anterior a la fecha actual.","error");return}
+  const btn=$("reserveBtn");btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Calculando...';
+  try{
+    setStatus($("reserveStatus"),"📍 Geocodificando origen y paradas...","info");
+    const origin=await geocode(originText);
+    const points=[];
+    for(let i=0;i<stops.length;i++){setStatus($("reserveStatus"),`📍 Buscando parada ${i+1} de ${stops.length}...`,"info");points.push(await geocode(stops[i].address))}
+    const {client}=getCustomer(phone,name);let totalKm=0,totalSec=0,routes=[];
+    for(let i=0;i<points.length;i++){setStatus($("reserveStatus"),`🛣️ Calculando ruta ${i+1} de ${points.length}...`,"info");const rt=await route(origin,points[i]);routes.push(rt);totalKm+=rt.distance/1000;totalSec+=rt.duration}
+    const p=pricing(client.orders.length,totalKm);
+    $("reserveSummary").innerHTML=`<div class="route-summary">
+      <div class="metric">Fecha<strong>${new Date(date).toLocaleString("es-CU",{dateStyle:"medium",timeStyle:"short"})}</strong></div>
+      <div class="metric">Distancia<strong>${totalKm.toFixed(2)} km</strong></div>
+      <div class="metric">Tiempo total<strong>${formatTime(totalSec)}</strong></div>
+      <div class="metric">Paradas<strong>${stops.length}</strong></div></div>
+      <p style="margin-top:15px"><strong>Cliente:</strong> ${esc(name)} · ${client.orders.length} mensajería${client.orders.length===1?"":"s"} previa${client.orders.length===1?"":"s"} · ${clientState(client.orders.length)}</p>`;
+    $("reserveOld").innerHTML=p.fixed?`Precio original: <span class="old-price">${money(p.original)}</span>`:"";
+    $("reservePrice").textContent=money(p.final);$("reserveSaving").textContent=p.fixed?`⭐ Ahorras ${money(p.saving)} con tu 10% de cliente fijo.`:"";
+    $("reserveResult").classList.add("show");
+    if(reserveMap)reserveMap.remove();reserveMap=newMap("mapReserve");$("mapReserve").style.display="block";
+    L.marker([origin.lat,origin.lon],{icon:makeIcon("start")}).addTo(reserveMap).bindPopup("Origen");
+    const all=[[origin.lat,origin.lon]];
+    points.forEach((pt,i)=>{L.marker([pt.lat,pt.lon],{icon:makeIcon("dest",i+1)}).addTo(reserveMap).bindPopup(`Parada ${i+1}: ${esc(stops[i].name)}`);all.push([pt.lat,pt.lon])});
+    routes.forEach(rt=>L.polyline(rt.geometry.coordinates.map(x=>[x[1],x[0]]),{color:"#1E90FF",weight:4,opacity:.75}).addTo(reserveMap));
+    reserveMap.fitBounds(L.latLngBounds(all),{padding:[30,30]});
+    reserveRouteData={name,phone,date,originText,stops,totalKm,totalSec,price:p.final,original:p.original,fixed:p.fixed};
+    $("reserveWA").onclick=()=>{
+      let msg=`Hola, soy ${name}. Quiero confirmar una reserva con Mensajería Raycel.\n\n📅 Recogida: ${new Date(date).toLocaleString("es-CU",{dateStyle:"medium",timeStyle:"short"})}\n📍 Origen: ${originText}\n`;
+      stops.forEach((s,i)=>msg+=`\n🎯 Parada ${i+1}: ${s.name}\n📍 ${s.address}\n`);
+      msg+=`\n📏 Distancia total: ${totalKm.toFixed(2)} km\n⏱️ Tiempo estimado: ${formatTime(totalSec)}\n💰 Precio: ${money(p.final)}${p.fixed?`\n⭐ Descuento cliente fijo: 10%\n💵 Ahorro: ${money(p.saving)}`:""}\n\n¿Podemos confirmar la reserva?`;
+      window.open(`https://wa.me/${CONFIG.ownerWhatsApp}?text=${encodeURIComponent(msg)}`,"_blank");
+      // El servicio se registra al confirmar la reserva.
+      addOrder(phone,name,{date:new Date().toISOString(),reservationDate:date,origin:originText,destination:stops.map(s=>s.name+" → "+s.address).join(" | "),distance:totalKm,price:p.final,original:p.original,discount:p.fixed,duration:totalSec,stops:stops.length});
+      renderAdmin();
+    };
+    setStatus($("reserveStatus"),"✅ Reserva calculada correctamente.","success");
+  }catch(e){setStatus($("reserveStatus"),"❌ "+esc(e.message),"error")}
+  finally{btn.disabled=false;btn.textContent="🧭 Calcular Reserva"}
+});
+
+let qr;
+function generateQR(){
+  const url=$("qrUrl").value.trim();
+  if(!url){alert("Introduce una URL.");return}
+  localStorage.setItem(LS_QR,url);$("qrcode").innerHTML="";
+  qr=new QRCode($("qrcode"),{text:url,width:220,height:220,colorDark:"#1E90FF",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.H});
+}
+$("qrUrl").value=localStorage.getItem(LS_QR)||"";
+if($("qrUrl").value)generateQR();
+$("genQR").onclick=generateQR;
+$("downloadQR").onclick=()=>{
+  const canvas=$("qrcode").querySelector("canvas"),img=$("qrcode").querySelector("img");
+  if(!canvas&&!img){alert("Genera primero el código QR.");return}
+  const a=document.createElement("a");a.download="QR-Mensajeria-Raycel.png";a.href=canvas?canvas.toDataURL("image/png"):img.src;a.click();
+};
+$("shareQR").onclick=async()=>{
+  const url=$("qrUrl").value.trim();if(!url){alert("Introduce una URL.");return}
+  try{
+    if(navigator.share){await navigator.share({title:"Mensajería Raycel",text:"Visita Mensajería Raycel",url})}
+    else window.open(`https://wa.me/?text=${encodeURIComponent("Mensajería Raycel: "+url)}`,"_blank");
+  }catch(e){}
+};
+
+function renderAdmin(){
+  const clients=getClients(),arr=Object.values(clients).sort((a,b)=>(b.orders?.length||0)-(a.orders?.length||0));
+  let totalOrders=0,revenue=0,fixed=0;
+  arr.forEach(c=>{const n=c.orders?.length||0;totalOrders+=n;if(n>=CONFIG.fixedOrders)fixed++;(c.orders||[]).forEach(o=>revenue+=Number(o.price)||0)});
+  $("sClients").textContent=arr.length;$("sFixed").textContent=fixed;$("sOrders").textContent=totalOrders;$("sRevenue").textContent=money(revenue);
+  if(!arr.length){$("clientsList").innerHTML='<div class="empty">Todavía no hay clientes registrados.</div>';return}
+  $("clientsList").innerHTML=arr.map((c,idx)=>{
+    const orders=(c.orders||[]).slice().reverse().slice(0,3);
+    const badge=(c.orders||[]).length>=CONFIG.fixedOrders?'<span class="fixed-badge">⭐ FIJO</span>':"";
+    return `<div class="client">
+      <div class="client-top"><div><div class="client-name">${esc(c.name)} ${badge}</div><div class="client-meta">📱 ${esc(c.phone||"—")} · ${c.orders?.length||0} mensajería${(c.orders?.length||0)===1?"":"s"}</div></div>
+      <div class="actions" style="margin:0"><button class="btn btn-wa admin-wa" data-phone="${esc(c.phone||"")}">💬 WhatsApp</button><button class="btn btn-red delete-client" data-key="${esc(Object.keys(clients)[Object.keys(clients).indexOf(Object.keys(clients).find(k=>clients[k]===c))]||"")}">🗑️ Eliminar</button></div></div>
+      <ul class="history">${orders.length?orders.map(o=>`<li>📅 ${new Date(o.date).toLocaleString("es-CU",{dateStyle:"short",timeStyle:"short"})}<br>📍 ${esc(o.origin)} → ${esc(o.destination)}<br>📏 ${Number(o.distance||0).toFixed(2)} km · 💰 ${money(o.price)} ${o.discount?"⭐":""}</li>`).join(""):'<li>Sin historial.</li>'}</ul>
+    </div>`;
+  }).join("");
+  document.querySelectorAll(".admin-wa").forEach(b=>b.onclick=()=>window.open(`https://wa.me/${normalizePhone(b.dataset.phone)}`,"_blank"));
+  document.querySelectorAll(".delete-client").forEach(b=>b.onclick=()=>{
+    if(!confirm("¿Eliminar este cliente y todo su historial?"))return;
+    const data=getClients();delete data[b.dataset.key];saveClients(data);renderAdmin();
+  });
+}
+$("loginBtn").onclick=async()=>{
+  const hash = await sha256($("adminPass").value);
+  if(hash===CONFIG.adminPasswordHash){
+    sessionStorage.setItem("raycel_admin","1");$("adminLogin").style.display="none";$("adminPanel").style.display="block";renderAdmin();
+  }else setStatus($("loginStatus"),"Contraseña incorrecta.","error");
+};
+$("logoutBtn").onclick=()=>{sessionStorage.removeItem("raycel_admin");$("adminPanel").style.display="none";$("adminLogin").style.display="block";$("adminPass").value=""};
+if(sessionStorage.getItem("raycel_admin")==="1"){$("adminLogin").style.display="none";$("adminPanel").style.display="block";renderAdmin()}
+
+/* Nota: el administrador se registra al pulsar los botones de solicitud/confirmación.
+   Los datos quedan en localStorage de ESTE navegador/dispositivo. */
+</script>
+</body>
+</html>
